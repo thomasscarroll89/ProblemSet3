@@ -19,44 +19,32 @@ Y <- apply(Data, MARGIN=3, FUN=beta.fun)
 dim(Y) #shows the dimensions are 20 by 1 by 1000 
 
 ####Problem 3####
-dim(Y)
-
-Y.test <- array(Y, dim=c(20, 1, 1000))
-testing <- merge(Y.test, Data)
-
-dim(Y.test)
-dim(Data)
-
-
-function1 <- function(x){
-  x[,]
+function.test <- function(i){
+  coef(lm(Y[,i] ~ Data[,,i]))
 }
 
-temp <- apply(Data, MARGIN=3, function1)
+coefficient.estimates <- sapply(1:1000, function.test)
 
-merge(Y, Data, all=TRUE)
+####Problem 4####
+intercept.density <- density(coefficient.estimates[1,])
+x1.density <- density(coefficient.estimates[2,])
+x2.density <- density(coefficient.estimates[3,])
+x3.density <- density(coefficient.estimates[4,])
+x4.density <- density(coefficient.estimates[5,])
+x5.density <- density(coefficient.estimates[6,])
 
-library(abind)
-abind(Data, Y)
-Data[1:20,1:5,]
-apply(Data, MARGIN=3, )
+plot(intercept.density)
+plot(x1.density)
+plot(x2.density)
+plot(x3.density)
+plot(x4.density)
+plot(x5.density)
 
-apply(Data, FUN=[,,])
-summary(lm(Y[,1] ~ Data[,,1]))
-lm(Y[,3] ~ Data[,,3])
-Y
-Data
-Data2 <- merge(Data[,,], Y)
-Data3 <- cbind(Y[,1], Data[,,1])
-lapply(Data, function(i) x[,,1])
-
-function3 <- function(x, x1, x2, x3, x4, x5){
-  coef(lm(x ~ x1 + x2 + x3 + x4 + x5))
+####Problem 5####
+t.statistic.extraction <- function(i){
+  summary(lm(Y[,i] ~ Data[,,i]))$coefficients[,3]
 }
 
-apply(Y, MARGIN=2, function3, x1=Data[,1,1], x2=Data[,2,1], x3=Data[,3,1], x4=Data[,4,1], x5=Data[,5,1])
+t.statistics <- sapply(1:1000, t.statistic.extraction)
 
-apply(Y, MARGIN=2, FUN=lm, formula=Y ~ Data[,1,1] + Data[,2,1] + Data[,3,1] + Data[,4,1] + Data[,5,1])
-x <- Data[,1,1]
-y <- Data[,]
-
+####Problem 6####
