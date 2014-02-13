@@ -20,7 +20,7 @@ dim(Y) #shows the dimensions are 20 by 1 by 1000
 
 ####Problem 3####
 function.test <- function(i){ #create a function to extract the coefficients from a linear regression,
-                              #regressing each column of Y on its respected 20-by-5 X matrix.  
+  #regressing each column of Y on its respected 20-by-5 X matrix.  
   coef(lm(Y[,i] ~ Data[,,i]))
 }
 
@@ -56,16 +56,16 @@ t.statistics <- sapply(1:1000, t.statistic.extraction) #run the function 1000 ti
 #freedom. 
 
 cutoff <- qt(0.975, df=14) #Tells us that out t-statistic should be at least 2.145 to claim the 
-                            #result is significant at the 0.05 level
+#result is significant at the 0.05 level
 
 function.sum <- function(x){ #selfmade function which calculates the total number of times that an element
-                              #in a vector (x) is greater than or equal to some cutoff number (calculated
-                              #above). 
+  #in a vector (x) is greater than or equal to some cutoff number (calculated
+  #above). 
   sum(x >= cutoff)
 }
 
 apply(t.statistics, MARGIN=1, FUN=function.sum) #apply this function to get the total number of times our
-                                                #t statistic is statistically significant
+#t statistic is statistically significant
 
 #As we can see from the output, the intercept and the first, second, and fourth variables are all statistically 
 #significant, meaning that for almost all 1000 regressions they had a t statistic greater than the cutoff. 
@@ -76,7 +76,19 @@ apply(t.statistics, MARGIN=1, FUN=function.sum) #apply this function to get the 
 
 
 ####Problem 7####
+#The following code was run on a MAC, rather than my PC. 
+library('doMC')
+library('multicore')
+library('foreach')
+library(plyr)
 
+#I choose to replicate my code where I extract the t statistics
+system.time(lapply(1:1000, t.statistic.extraction)) #returns an elapsed time of 1.303.
+
+registerDoMC(cores=4)
+system.time(laply(1:1000, t.statistic.extraction, .parallel=TRUE)) #returns an elapsed time of 0.765
+
+#Thus overall we appear to save 1.303 - 0.765 = 0.538 seconds. 
 
 ####Page 2####
 
@@ -110,65 +122,65 @@ prediction3 <- data3 %*% coef(model3)
 model.statistics <- function(outcomes, predictions, naive.forecast){
   n <- nrow(predictions)
   k <- ncol(predictions)
-
+  
   #calculate absolute error, e (i.e. the residuals)
   function1 <- function(x){ #create a function to calculate RMSE for a single vector
     abs(outcomes.test - x)
   }
   abs.error <- apply(predictions, 2, function1) #apply the function to predictions matrix by column
-    #abs.error is an n-by-k matrix containing absolute error; each column corresponds to a different model
+  #abs.error is an n-by-k matrix containing absolute error; each column corresponds to a different model
   
   #calculate absolute percentage error, a
   function2 <- function(i){
     (abs.error[,i]/abs(outcomes))*100
   }
   abs.percent.error <- sapply(1:k, function2)
-    #abs.percent.error is an n-by-k matrix containing absolute percentage error; each column corresponds to a different model
-
+  #abs.percent.error is an n-by-k matrix containing absolute percentage error; each column corresponds to a different model
+  
   #calculate vector b, the difference between naive estimates and outcome
   b <- abs(outcomes - naive.forecast)
   
-#RMSE FORMULA
+  #RMSE FORMULA
   rmse.calculation <- function(x){
     sqrt(sum(na.omit(x)^2)/n)
   } 
   rmse <- apply(abs.error, 2, rmse.calculation)
   
-#MAD FORMULA
+  #MAD FORMULA
   mad.calculation <- function(x){
     median(na.omit(x))
   }
   mad <- apply(abs.error, 2, mad.calculation)
-
-#RMSLE FORMULA
+  
+  #RMSLE FORMULA
   rmsle.calculation <- function(x){
     temp <- cbind(outcomes, x)
     temp <- na.omit(temp)
     sqrt((sum((log(temp[,2] + 1) - log(temp[,1] + 1))^2))/n)
   }
   rmsle <- apply(predictions, 2, rmsle.calculation)
-
-#MAPE FORMULA
+  
+  #MAPE FORMULA
   mape.calculation <- function(x){
     sum(na.omit(x))/n
   }
   mape <- apply(abs.percent.error, 2, mape.calculation)
-
-#MEAPE FORMULA
+  
+  #MEAPE FORMULA
   meape.calculation <- function(x){
     median(na.omit(x))
   }
   meape <- apply(abs.percent.error, 2, meape.calculation)
-
-#MRAE FORMULA
+  
+  #MRAE FORMULA
   mrae.calculation <- function(x){
     temp <- cbind(b, x)
     temp <- na.omit(temp)
     median(temp[,2]/temp[,1])
   }
   mrae <- apply(abs.error, 2, mrae.calculation)
-
-#Creating the output 
+  
+  #Creating the output 
   output <- cbind(rmse, mad, rmsle, mape, meape, mrae)
   return(output)
 }
@@ -195,7 +207,7 @@ model.statistics2 <- function(outcomes, predictions, naive.forecast=NULL, RMSE=T
   
   #calculate vector b, the difference between naive estimates and outcome
   if(is.null(naive.forecast)==FALSE){ #tests to make sure that naive.forecast was specified in the 
-                                      #arguments; otherwise the next line of code wouldn't run
+    #arguments; otherwise the next line of code wouldn't run
     b <- abs(outcomes - naive.forecast)
   }
   
@@ -230,7 +242,7 @@ model.statistics2 <- function(outcomes, predictions, naive.forecast=NULL, RMSE=T
     median(na.omit(x))
   }
   meape <- apply(abs.percent.error, 2, meape.calculation)
-
+  
   #MRAE FORMULA
   if(is.null(naive.forecast)==FALSE){ #tests to make sure that naive.forecast was specified in the arguments
     mrae.calculation <- function(x){
@@ -265,12 +277,12 @@ model.statistics2 <- function(outcomes, predictions, naive.forecast=NULL, RMSE=T
   }
   
   if(ncol(output)>1){ #checks to make sure that output was updated at least once (i.e. at least one of the
-                      # six statistics was calculated and added to the output matrix). If so, it drops the 
-                      #first column, which was just a bunch of NAs. It then returns the output. 
+    # six statistics was calculated and added to the output matrix). If so, it drops the 
+    #first column, which was just a bunch of NAs. It then returns the output. 
     output <- output[,-1]
     return(output)
   } else(warning("No statistics were calculated. Set one of the statistics arguments to TRUE."))
-
+  
 }
 
 ####Part 4####
